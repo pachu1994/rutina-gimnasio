@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rutina personal</title>
+    <style>
+      :root {
+        --bg: #f4f5f7;
+        --panel: #ffffff;
+        --panel-alt: #eef4f4;
+        --ink: #17212f;
+        --muted: #5f6d7d;
+        --line: #dfe7ee;
+        --accent: #1f8f76;
+        --accent-strong: #166e5d;
+        --warning: #c96f2d;
+        --danger: #b44b4b;
+        --shadow: 0 8px 24px rgba(18, 35, 53, 0.08);
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--ink); }
+      body { padding: 20px; }
+      .app-shell { max-width: 1200px; margin: 0 auto; }
+      .topbar { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px 20px; box-shadow: var(--shadow); }
+      .topbar-row { display: flex; justify-content: space-between; gap: 16px; align-items: center; flex-wrap: wrap; }
+      h1 { margin: 0 0 8px; font-size: clamp(1.5rem, 3vw, 2.4rem); }
+      #progressText { margin: 0; color: var(--muted); }
+      .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+      .controls select, .controls button, .action-btn, .serie-btn, .timer-btn, .complete-btn, .symptom-btn, .session-tab, .mobility-choice button, .tab-btn { border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--ink); font: inherit; padding: 8px 12px; cursor: pointer; }
+      .controls button, .action-btn.primary, .tab-btn.active, .session-tab.active, .mobility-choice button.active { background: var(--accent); color: white; border-color: var(--accent); }
+      .session-tabs, .tab-list, .mobility-choice { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+      .tab-btn, .session-tab, .mobility-choice button { background: white; }
+      .tab-btn.active, .session-tab.active, .mobility-choice button.active { background: var(--accent); color: white; }
+      .progress-shell { height: 12px; border-radius: 999px; background: var(--panel-alt); overflow: hidden; margin-top: 12px; }
+      #progressFill { height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), #70cbb9); transition: width 0.2s ease; }
+      #modeLabel { margin-top: 12px; font-weight: 600; }
+      .tab-content { display: none; margin-top: 16px; }
+      .tab-content.active { display: block; }
+      .notice { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; box-shadow: var(--shadow); margin-bottom: 16px; }
+      .notice.safe { border-left: 5px solid var(--accent); }
+      .notice.danger { border-left: 5px solid var(--danger); }
+      .notice strong { display: block; margin-bottom: 8px; }
+      .exercise-list { display: grid; gap: 18px; }
+      .ex-card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px; box-shadow: var(--shadow); }
+      .ex-card.completed { border-color: rgba(31, 143, 118, 0.35); background: linear-gradient(180deg, #ffffff 0%, #f5fdfb 100%); }
+      .card-head { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
+      .category { display: inline-block; font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent-strong); background: #e5f6f2; border-radius: 999px; padding: 4px 8px; margin-bottom: 8px; }
+      .card-head h2 { margin: 0; font-size: 1.2rem; }
+      .dose { font-weight: 700; color: var(--muted); }
+      .card-grid { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 18px; margin-top: 16px; }
+      .canvas-stage { background: linear-gradient(160deg, #f3f9fd 0%, #eff7f4 100%); border: 1px solid var(--line); border-radius: 14px; min-height: 200px; display: grid; place-items: center; padding: 12px; }
+      .motion-canvas { display: block; width: 160px; height: 160px; border-radius: 12px; background: linear-gradient(135deg, rgba(31,143,118,0.08), rgba(31,143,118,0.18)); }
+      .canvas-disclaimer { font-size: 0.72rem; color: var(--muted); margin-top: 8px; }
+      .instructions { display: grid; gap: 10px; }
+      .instructions p { margin: 0; color: var(--ink); }
+      .callout { background: #f7fafc; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+      .callout.warn { background: #fffaf2; border-color: #f0d7b1; }
+      .callout.stop { background: #fff1f0; border-color: #e9c6c6; }
+      .symptom-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+      .symptom-btn { padding: 7px 10px; background: #fff; }
+      .symptom-btn.selected { background: var(--accent); color: white; border-color: var(--accent); }
+      .card-tools { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+      .series-row, .tool-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+      .serie-btn { min-width: 38px; padding: 7px 9px; }
+      .serie-btn.done, .complete-btn.done { background: var(--accent); color: white; border-color: var(--accent); }
+      .timer-btn { background: #edf7ff; }
+      .complete-btn { background: #f5f5f5; }
+      .weekly-log { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+      .weekly-log-head { display: flex; justify-content: space-between; gap: 10px; align-items: center; flex-wrap: wrap; }
+      .set-grid { display: grid; gap: 8px; margin-top: 10px; }
+      .set-grid-labels, .set-grid-row { display: grid; grid-template-columns: 44px minmax(80px, 1fr) minmax(80px, 1fr) auto; gap: 8px; align-items: center; }
+      .set-grid-labels { color: var(--muted); font-size: 0.8rem; }
+      .set-grid-row input { width: 100%; padding: 9px 10px; border-radius: 10px; border: 1px solid var(--line); }
+      .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+      .journal-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 18px; }
+      .journal-box { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px; box-shadow: var(--shadow); }
+      .journal-box h2 { margin-top: 0; }
+      .settings-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; margin-top: 12px; }
+      .settings-row label { display: flex; flex-direction: column; gap: 6px; font-weight: 600; }
+      .symptom-select, #logDate, textarea { width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 10px; font: inherit; }
+      textarea { min-height: 110px; resize: vertical; }
+      .journal-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+      .hidden { display: none !important; }
+      .records-list { display: grid; gap: 12px; margin-top: 12px; }
+      .record { background: #f7fafc; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+      .muted { color: var(--muted); }
+      .timeline { display: grid; grid-template-columns: repeat(5, minmax(130px, 1fr)); gap: 10px; margin-bottom: 16px; }
+      .timeline div { background: rgba(31,143,118,0.06); border: 1px solid #dfece9; border-radius: 12px; padding: 10px; }
+      .timeline b { display: block; margin-bottom: 6px; }
+      #timerDialog { border: none; border-radius: 18px; padding: 0; width: min(440px, calc(100vw - 30px)); }
+      .timer-shell { padding: 18px; background: var(--panel); }
+      .timer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+      #timerDisplay { font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; text-align: center; letter-spacing: 0.08em; }
+      #timerStatus { text-align: center; color: var(--muted); margin: 8px 0 0; }
+      .timer-actions { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 15px; }
+      .timer-close { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; cursor: pointer; }
+      @media (max-width: 800px) {
+        .card-grid, .journal-grid { grid-template-columns: 1fr; }
+        .timeline { grid-template-columns: 1fr 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="topbar-row">
+          <div>
+            <h1>Rutina personal</h1>
+            <p id="progressText">0 de 0 ejercicios completados (0%)</p>
+          </div>
+          <div class="controls">
+            <label for="dayMode">Modo
+              <select id="dayMode">
+                <option value="standard">Día estándar</option>
+                <option value="recovery">Recuperación suave</option>
+                <option value="consolidation">Consolidación</option>
+              </select>
+            </label>
+            <button id="animationToggle" type="button">▶ Animaciones</button>
+            <button id="wakeLock" type="button">📱 Pantalla: auto</button>
+            <div id="streak" class="action-btn">🔥 Racha: 0 días</div>
+          </div>
+        </div>
+        <div class="progress-shell"><div id="progressFill"></div></div>
+        <div id="modeLabel">Modo activo: Día estándar</div>
+      </header>
+
+      <nav class="tab-list" aria-label="Pestañas de la rutina">
+        <button class="tab-btn active" data-tab="home" type="button">Inicio</button>
+        <button class="tab-btn" data-tab="mobility" type="button">Movilidad</button>
+        <button class="tab-btn" data-tab="gym" type="button">Gimnasio</button>
+        <button class="tab-btn" data-tab="breaks" type="button">Pausas</button>
+        <button class="tab-btn" data-tab="journal" type="button">Diario</button>
+      </nav>
+
+      <main>
+        <section class="tab-content active" id="home"></section>
+        <section class="tab-content" id="mobility"></section>
+        <section class="tab-content" id="gym"></section>
+        <section class="tab-content" id="breaks"></section>
+        <section class="tab-content" id="journal"></section>
+      </main>
+    </div>
+
+    <dialog id="timerDialog">
+      <div class="timer-shell">
+        <div class="timer-header">
+          <strong id="timerName">Descanso</strong>
+          <button class="timer-close" type="button" onclick="document.getElementById('timerDialog').close()">Cerrar</button>
+        </div>
+        <div id="timerDisplay">01:00</div>
+        <div id="timerStatus">Listo</div>
+        <div class="timer-actions">
+          <button id="timerStart" class="action-btn primary" type="button">Iniciar</button>
+          <button id="timerPause" class="action-btn" type="button">Pausar</button>
+          <button id="timerReset" class="action-btn" type="button">Reset</button>
+        </div>
+      </div>
+    </dialog>
+
+    <script>
+      /* Contenido y seguimiento local de la rutina personal. */
+      const STORE_KEY = 'routine-tracker-v2';
+      const todayISO = () => new Date().toISOString().slice(0, 10);
+      const getISOWeek = (date = new Date()) => {
+        const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        return `${d.getUTCFullYear()}-W${String(Math.ceil((((d - yearStart) / 86400000) + 1) / 7)).padStart(2, '0')}`;
+      };
+      const loadStored = () => { try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch { return {}; } };
+      const old = loadStored();
+      const state = {
+        date: old.date || todayISO(), done: old.done || {}, symptoms: old.symptoms || {},
+        weekly: old.weekly || {}, journal: old.journal || [], mode: old.mode || 'standard',
+        animation: old.animation !== false, speed: old.speed ?? 1, streak: old.streak || 0,
+        activeDay: old.activeDay || 'A', mobilityLength: old.mobilityLength || 'short'
+      };
+      if (state.date !== todayISO()) { state.date = todayISO(); state.done = {}; }
+      const weekKey = getISOWeek();
+      state.weekly[weekKey] ||= {};
+      const STOP = 'Detén el movimiento si empeoran el dolor o el tinnitus, aparece mareo, entumecimiento u otro síntoma nuevo. No entrenes a través de síntomas que empeoran.';
+      const item = (id, title, category, dose, kind, seconds, instructions, alternative, breath = 'Respira con naturalidad; no contengas el aire.', sets = 1, reps = '') => ({id,title,category,dose,kind,seconds,instructions,alternative,breath,sets,reps});
+
+      const home = [
+       item('home-walk','Pausa activa: caminar o cambiar de postura','Pausa • interrumpir tiempo sentado','1–2 min','walk',30,'Levántate y camina un poco, o cambia de postura. No es necesario mantener una postura “perfecta”.','Si no puedes caminar, ponte de pie y vuelve a sentarte despacio.'),
+       item('home-shoulder','Soltar hombros y movilidad cómoda','Hombros • rango pequeño','5–8 repeticiones','shoulder',30,'Sentada o de pie, lleva suavemente los codos un poco hacia atrás y vuelve. Mantén cuello y mandíbula relajados.','Solo respira con calma y deja caer los hombros. No eleves los brazos por encima de la cabeza.'),
+       item('home-twist','Rotación torácica pequeña','Espalda alta • movimiento controlado','3–5 por lado','twist',30,'Gira suavemente el tronco unos grados con la mirada al frente. Regresa al centro entre repeticiones.','Omite el giro y camina un minuto o cambia de postura.'),
+       item('home-neck','Giro cervical corto (opcional)','Cuello • solo si resulta cómodo','2–3 por lado','neck',30,'Mira ligeramente a un lado y vuelve al centro; no hagas círculos ni fuerces el final del rango.','Omítelo por completo; no es necesario mover el cuello para completar la pausa.')
+      ];
+      const mobility = [
+       item('mob-thoracic','Apertura torácica apoyada en silla','Columna torácica • suave','4–6 repeticiones','torso',30,'Sentada, apoya la espalda alta en el respaldo y permite un pequeño movimiento de apertura del pecho. Cabeza neutra, sin arquear la espalda baja.','Haz una respiración cómoda con los pies apoyados.'),
+       item('mob-twist','Rotación torácica sentada','Movilidad complementaria','4–6 por lado','twist',30,'Cruza los brazos suavemente sobre el pecho y gira un poco el tronco. La cabeza acompaña solo si no molesta.','Reduce el giro o sáltalo.'),
+       item('mob-band','Remo muy ligero con banda','Activación opcional • banda','1–2 x 8–12','row',45,'Ancla la banda de forma segura a la altura del torso. Tira los codos hacia atrás sin encoger hombros ni adelantar el cuello.','Sin banda: junta suavemente los omóplatos o simplemente omítelo.'),
+       item('mob-hip','Balanceo cómodo de cadera sentado','Cadera • sin estirar fuerte','30 segundos','generic',30,'Sentada, alterna pequeños cambios de peso sobre los isquiones sin girar o forzar la espalda.','Ponte de pie y da unos pasos.')
+      ];
+      const core = (id, title, kind, instructions, alternative, reps) => item(id,title,'Core • estabilidad y control',`3 series × ${reps}` ,kind,60,instructions,alternative,'Exhala suavemente durante el esfuerzo; inhala al regresar. Sigue respirando, sin apneas.',3,reps);
+      const lift = (id,title,category,dose,kind,instructions,alternative,breath='Exhala durante el esfuerzo; inhala al volver.',reps='8–12') => item(id,title,category,dose,kind,60,instructions,alternative,breath,3,reps);
+      const gym = {
+       A: {
+        name:'A • Piernas, glúteos y tracción',
+        core:[
+         core('a-deadbug','Dead bug','deadbug','Tumbada, mueve lentamente una pierna y vuelve; usa un recorrido que te permita respirar y mantener el tronco cómodo.','Desliza un talón por el suelo con recorrido corto.','6–8 por lado'),
+         core('a-pallof','Pallof press en polea','pallof','De pie de lado a una polea a la altura del pecho, extiende las manos al frente y resiste el giro. Brazos sin elevarlos sobre la cabeza.','Usa banda ligera anclada a la altura del pecho o acorta el recorrido.','8–10 por lado')
+        ],
+        lifts:[
+         lift('a-hip','Hip thrust en máquina o puente cargado','Glúteos • principal','3 × 8–12','bridge','Apoya la espalda de forma estable. Eleva la pelvis contrayendo glúteos; detente en un rango cómodo, sin arquear la espalda.','Puente de glúteos sin carga o con banda ligera.','Exhala al elevar la pelvis; inhala al bajarla.','8–12'),
+         lift('a-press','Prensa de piernas','Tren inferior','3 × 8–12','squat','Coloca los pies en una posición cómoda. Baja solo hasta donde pelvis y espalda estén cómodas; empuja con control.','Sentadilla a caja o menor rango.','Inhala al bajar; exhala al empujar.','8–12'),
+         lift('a-row','Remo sentado con apoyo','Espalda • tracción','3 × 8–12','row','Tira de los agarres hacia el torso, hombros relajados y cuello neutro. No encogas los hombros.','Remo con banda anclada delante.','Exhala al tirar; inhala al extender los brazos.','8–12'),
+         lift('a-chest','Press de pecho horizontal en máquina (opcional)','Pecho • solo si no provoca síntomas','3 × 8–12','press','Empuje horizontal a una altura cómoda, sin llevar los brazos por encima de las orejas. Prueba carga ligera y rango tolerable; no es obligatorio.','Omitir y consultar a un profesional para elegir una variante cómoda. No sustituir por empuje vertical.','Exhala al empujar horizontalmente; inhala al volver. Detente si aparecen síntomas.','8–12'),
+         lift('a-biceps','Curl de bíceps','Brazos • bíceps','3 × 10–12','curl','Flexiona los codos con ellos cerca del torso; mantén cuello y hombros relajados y evita balancear el cuerpo.','Mancuernas más ligeras o banda suave.','Exhala al flexionar; inhala al bajar.','10–12'),
+         lift('a-triceps','Extensión de tríceps en polea hacia abajo','Brazos • tríceps','3 × 10–12','triceps','Codos cerca del torso. Empuja el agarre hacia abajo sin llevar las manos detrás del cuerpo ni mover el tronco.','Banda anclada de forma segura por arriba, empujando hacia abajo; menos carga o rango.','Exhala al empujar hacia abajo; inhala al regresar.','10–12')
+        ]
+       },
+       B: {
+        name:'B • Isquiotibiales, glúteos y espalda',
+        core:[
+         core('b-bird-dog','Bird dog','birddog','En cuatro apoyos, desliza una pierna atrás; si resulta cómodo, añade el brazo contrario. Mantén el tronco estable y sin arquear.','Mueve solo una pierna o un brazo; omite si incomoda.','6–8 por lado'),
+         core('b-side-plank','Plancha lateral con rodillas apoyadas','sideplank','Apoya antebrazo y rodillas y eleva ligeramente la pelvis manteniendo respiración fluida.','Haz una inclinación lateral mínima de pie o sáltala.','15–20 segundos por lado')
+        ],
+        lifts:[
+         lift('b-curl','Curl femoral sentado','Piernas • isquiotibiales','3 × 10–15','hamcurl','Ajusta la máquina y flexiona las rodillas de forma controlada, sin apretar mandíbula ni aguantar la respiración.','Reduce carga o recorrido.','Exhala al flexionar; inhala al regresar.','10–15'),
+         lift('b-rdl','Peso muerto rumano con mancuernas (opcional)','Glúteos e isquiotibiales','3 × 8–10','hinge','Solo si ya conoces la técnica y resulta cómodo: lleva la cadera atrás con mancuernas cerca de las piernas; detente antes de perder control.','Curl femoral en máquina o reduce rango/carga; también puedes omitirlo.','Inhala al llevar caderas atrás; exhala al volver erguida.','8–10'),
+         lift('b-pulldown','Jalón al pecho','Espalda • tracción hacia abajo','3 × 8–12','pulldown','Tira la barra al frente hacia la parte alta del pecho, nunca detrás de la nuca. Mantén hombros cómodos y rango que no empeore síntomas.','Remo sentado o con banda si la posición inicial o el jalón molestan.','Exhala al tirar hacia abajo; inhala al permitir el regreso controlado.','8–12'),
+         lift('b-hipab','Abducción de cadera en máquina','Glúteos • lateral','3 × 12–15','abduction','Abre las piernas en un rango cómodo y vuelve despacio sin balancearte. Esto fortalece, pero no reduce grasa localizada.','Pasos laterales con banda por encima de las rodillas.','Exhala al abrir; inhala al cerrar con control.','12–15'),
+         lift('b-biceps','Curl de bíceps','Brazos • bíceps','3 × 10–12','curl','Flexiona con los codos junto al torso y sin elevar hombros. Ajusta asiento o carga si el cuello se tensa.','Mancuernas o banda ligera en rango corto.','Exhala al flexionar; inhala al bajar.','10–12'),
+         lift('b-triceps','Extensión de tríceps en polea hacia abajo','Brazos • tríceps','3 × 10–12','triceps','Codos cerca del cuerpo y empuja el agarre hacia abajo con control; evita extender los brazos sobre la cabeza.','Banda ligera anclada arriba y empujando hacia abajo; reduce carga o rango.','Exhala al empujar abajo; inhala al regresar.','10–12')
+        ]
+       },
+       C: {
+        name:'C • Piernas, glúteos, espalda y brazos',
+        core:[
+         core('c-bridge-march','Marcha de puente (o dead bug)','bridge','Desde un puente cómodo, alterna levantar un pie unos centímetros solo si la pelvis se mantiene estable.','Puente bilateral sin marchar o dead bug sencillo.','6–8 por lado'),
+         core('c-pallof','Pallof press en polea','pallof','Resiste el giro de la banda o polea a la altura del pecho. Mantén los codos en rango cómodo.','Reduce tensión o hazlo sentado con banda.','8–10 por lado')
+        ],
+        lifts:[
+         lift('c-squat','Sentadilla a caja o prensa','Piernas • cuádriceps y glúteos','3 × 8–12','squat','Si eliges sentadilla, toca una caja estable y vuelve arriba; en prensa, ajusta profundidad a un rango cómodo.','Elige la opción más estable o reduce recorrido/carga.','Inhala al bajar; exhala al subir/empujar.','8–12'),
+         lift('c-kick','Extensión de cadera en polea','Glúteos • énfasis','3 × 10–12 por lado','kick','Sujétate a un apoyo, mueve la pierna desde la cadera sin arquear la espalda ni girar la pelvis.','Extensión de cadera con banda o puente.','Exhala al extender la cadera; inhala al regresar.','10–12'),
+         lift('c-legext','Extensión de rodilla en máquina','Tren inferior • cuádriceps','3 × 10–15','legextension','Extiende y flexiona la rodilla con carga controlada, sin golpear el tope.','Reduce carga o recorrido.','Exhala al extender; inhala al volver.','10–15'),
+         lift('c-row','Remo sentado o con apoyo','Espalda • tracción','3 × 8–12','row','Tracciona hacia el torso con cuello neutro y sin elevar hombros.','Banda ligera anclada de forma segura.','Exhala al tirar; inhala al regresar.','8–12'),
+         lift('c-chest','Press de pecho horizontal en máquina (opcional)','Pecho • solo si es confortable','3 × 8–12','press','Empuje horizontal; no sobre la cabeza. Usa un rango cómodo y omítelo si aumenta el tinnitus o alguna molestia.','Omitir y solicitar alternativa profesionalmente; no hacer empuje vertical.','Exhala al empujar; inhala al volver.','8–12'),
+         lift('c-arms','Curl de bíceps + tríceps polea abajo','Brazos • bíceps y tríceps','3 × 10–12 cada uno','arms','Haz ambos movimientos como ejercicios separados, tres series cada uno: curl junto al torso y tríceps empujando hacia abajo.','Banda ligera o elimina el movimiento que provoque síntomas.','Exhala en cada fase de esfuerzo; inhala al regresar.','10–12')
+        ]
+       }
+      };
+      function save(){localStorage.setItem(STORE_KEY,JSON.stringify(state));}
+      function escapeHTML(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+      function getWeekRecord(id){state.weekly[weekKey] ||= {};state.weekly[weekKey][id] ||= {sets:[{},{},{}]};return state.weekly[weekKey][id];}
+      function weeklyRows(ex){const rec=getWeekRecord(ex.id);return `<div class="weekly-log"><div class="weekly-log-head"><strong>Registro semanal · ${weekKey}</strong><span>3 series · anota reps y kg</span></div><div class="set-grid"><div class="set-grid-labels"><span>Serie</span><span>Reps</span><span>kg</span><span>Hecha</span></div>${[0,1,2].map(i=>{const s=rec.sets[i]||{};return `<div class="set-grid-row"><strong>${i+1}</strong><label class="sr-only" for="rep-${ex.id}-${i}">Repeticiones, serie ${i+1}</label><input id="rep-${ex.id}-${i}" inputmode="numeric" type="number" min="0" max="99" placeholder="${escapeHTML(ex.reps||'—')}" value="${escapeHTML(s.reps??'')}" data-log="reps" data-id="${ex.id}" data-set="${i}" aria-label="${escapeHTML(ex.title)} serie ${i+1} repeticiones"><label class="sr-only" for="kg-${ex.id}-${i}">Kilogramos, serie ${i+1}</label><input id="kg-${ex.id}-${i}" inputmode="decimal" type="number" min="0" step="0.5" placeholder="kg" value="${escapeHTML(s.kg??'')}" data-log="kg" data-id="${ex.id}" data-set="${i}" aria-label="${escapeHTML(ex.title)} serie ${i+1} kilogramos"><button type="button" class="serie-btn ${s.done?'done':''}" data-action="set-done" data-id="${ex.id}" data-set="${i}" aria-label="${s.done?'Desmarcar':'Marcar'} serie ${i+1}">${s.done?'✓':'○'}</button></div>`;}).join('')}</div><small>El registro se guarda en este dispositivo para esta semana. Deja kg vacío en ejercicios sin carga.</small></div>`;}
+      function buildCard(ex,isGym=false){const completed=state.done[ex.id]||0;const symptom=state.symptoms[ex.id]||'';return `<article class="ex-card ${completed>=ex.sets?'completed':''}" data-id="${ex.id}"><div class="card-head"><div><span class="category">${escapeHTML(ex.category)}</span><h2>${escapeHTML(ex.title)}</h2></div><span class="dose">${escapeHTML(ex.dose)}</span></div><div class="card-grid"><div class="canvas-stage"><canvas class="motion-canvas" data-kind="${escapeHTML(ex.kind)}" aria-label="Animación esquemática de ${escapeHTML(ex.title)}"></canvas><span class="canvas-disclaimer">Ilustración orientativa · adapta el rango</span></div><div class="instructions">${ex.instructions.split('|').map(p=>`<p>${escapeHTML(p)}</p>`).join('')}<div class="callout"><strong>Alternativa:</strong> ${escapeHTML(ex.alternative)}</div><div class="callout warn"><strong>Respiración:</strong> ${escapeHTML(ex.breath)}</div><div class="callout stop"><strong>Precaución:</strong> ${STOP}</div><div class="symptom-row" aria-label="Registro de sensación"><span>¿Cómo se sintió?</span>${[['better','Alivió'],['same','Igual'],['worse','Empeoró']].map(([v,label])=>`<button class="symptom-btn ${symptom===v?'selected':''}" type="button" data-action="symptom" data-value="${v}" data-id="${ex.id}">${label}</button>`).join('')}</div></div></div><div class="card-tools"><div class="series-row"><span>Series:</span>${Array.from({length:ex.sets},(_,i)=>`<button class="serie-btn ${completed>i?'done':''}" type="button" data-action="series" data-id="${ex.id}" data-value="${i+1}" aria-label="Marcar serie ${i+1}">${completed>i?'✓':i+1}</button>`).join('')}</div><div class="tool-actions"><button class="timer-btn" type="button" data-action="timer" data-seconds="${ex.seconds}" data-name="${escapeHTML(ex.title)}">⏱ Descanso ${ex.seconds}s</button><button class="complete-btn ${completed>=ex.sets?'done':''}" type="button" data-action="complete" data-id="${ex.id}">${completed>=ex.sets?'✓ Hecho':'Marcar hecho'}</button></div></div>${isGym?weeklyRows(ex):''}</article>`;}
+      function renderList(items,isGym=false){return `<div class="exercise-list">${items.map(ex=>buildCard(ex,isGym)).join('')}</div>`;}
+      function renderHome(){document.querySelector('#home').innerHTML=`<div class="notice"><strong>Rutina breve y adaptable para interrumpir el tiempo sentado.</strong> Elige una o dos opciones y cambia de postura/camina 2–3 minutos cada 45–60 minutos si te resulta viable. No son tratamiento del tinnitus ni del dolor.<div class="settings-row"><button class="action-btn primary" id="voiceHome" type="button">🔊 Guía por voz: iniciar</button><span>La guía es opcional; se puede detener desde el mismo control.</span></div></div>${renderList(home)}`;}
+      function renderMobility(){document.querySelector('#mobility').innerHTML=`<div class="notice"><strong>Movilidad complementaria:</strong> escoge según cómo te sientas. Cada tarjeta incluye alternativa; también puedes omitirla. No hagas manipulaciones bruscas del cuello ni estiramientos intensos.</div><div class="mobility-choice"><button type="button" data-length="short" class="${state.mobilityLength==='short'?'active':''}">Breve · 3–5 min</button><button type="button" data-length="full" class="${state.mobilityLength==='full'?'active':''}">Completa · 8–10 min</button></div>${renderList(state.mobilityLength==='short'?mobility.slice(0,2):mobility)}`;}
+      function timeline(){return `<div class="timeline"><div><b>0–5 min</b>Calentamiento suave</div><div><b>5–10 min</b>Movilidad cómoda</div><div><b>10–18 min</b>Core primero</div><div><b>18–55 min</b>Fuerza + descansos</div><div><b>55–60 min</b>Cierre y registro</div></div>`;}
+      function renderGym(){const tabs=Object.keys(gym).map(k=>`<button type="button" class="session-tab ${state.activeDay===k?'active':''}" data-session="${k}">Sesión ${k}</button>`).join('');const panels=Object.entries(gym).map(([k,session])=>`<div class="session-panel ${state.activeDay===k?'active':''}" id="session-${k}">${timeline()}<div class="notice safe"><strong>Core primero · ${session.name}.</strong> El core se programa en tres series para cada ejercicio, igual que el resto de esta sesión. Elige un rango cómodo y deja repeticiones en reserva.</div>${renderList([...session.core,...session.lifts],true)}</div>`).join('');document.querySelector('#gym').innerHTML=`<div class="notice"><strong>Tres sesiones semanales de una hora, con recuperación entre ellas cuando sea posible.</strong> Core primero. Los 60 s de descanso son orientativos: descansa más si lo necesitas. Selecciona A, B o C. Anota repeticiones y kg de cada una de las tres series; los datos quedan separados por semana.</div><div class="session-tabs">${tabs}</div>${panels}<div class="notice safe"><strong>Progresión:</strong> primero suma repeticiones dentro del rango; cuando las tres series lleguen al tope con buena técnica, comodidad y 2–3 repeticiones en reserva en sesiones sucesivas, aumenta el menor incremento disponible y vuelve al mínimo del rango. No calcules la carga con tu peso corporal; ajusta según el ejercicio y la tolerancia. No se puede reducir grasa de forma localizada en las caderas.</div>`;}
+      function renderBreaks(){document.querySelector('#breaks').innerHTML=`<div class="notice"><strong>Pausas activas durante el trabajo sentado:</strong> escoge una pausa breve. Si una opción no te sienta bien, omítela.</div>${renderList(home.slice(0,3))}<div class="notice safe"><strong>Recordatorio:</strong> no hay una postura única que debas sostener. Alternar posiciones y caminar un poco puede ser una pausa práctica.</div>`;}
+      function renderJournal(){const logs=state.journal.slice().reverse().map(r=>`<div class="record"><strong>${escapeHTML(r.date)}</strong> · Energía ${escapeHTML(r.energy||'—')}/5 · Trapecio ${escapeHTML(r.trap||'—')}/5 · Tinnitus ${escapeHTML(r.tinnitus||'—')}/5${r.note?`<p>${escapeHTML(r.note)}</p>`:''}</div>`).join('')||'<p class="muted">Todavía no hay registros.</p>';document.querySelector('#journal').innerHTML=`<div class="notice"><strong>Diario personal:</strong> registra cómo te sentiste, sin interpretarlo como diagnóstico. Se guarda localmente y no se envía a ningún servidor.</div><div class="journal-grid"><div class="journal-box"><h2>Check-in y notas</h2><label for="logDate">Fecha</label><input id="logDate" type="date" value="${todayISO()}"><div class="settings-row"><label>Energía <select class="symptom-select" id="energy"><option value="">—</option>${[1,2,3,4,5].map(x=>`<option>${x}</option>`).join('')}</select></label><label>Trapecio <select class="symptom-select" id="trap"><option value="">—</option>${[1,2,3,4,5].map(x=>`<option>${x}</option>`).join('')}</select></label><label>Tinnitus <select class="symptom-select" id="tinnitus"><option value="">—</option>${[1,2,3,4,5].map(x=>`<option>${x}</option>`).join('')}</select></label></div><p>Escala personal, no médica: 1 leve/bajo · 5 intenso/alto.</p><textarea id="note" placeholder="Notas opcionales..."></textarea><div class="journal-actions"><button class="action-btn primary" id="saveLog" type="button">Guardar registro</button><button class="action-btn" id="exportData" type="button">Exportar copia</button><label class="action-btn" for="importFile">Importar copia</label><input class="hidden" type="file" id="importFile" accept="application/json"></div></div><div class="journal-box"><h2>Registros</h2><div class="records-list">${logs}</div><div class="journal-actions"><button class="action-btn" id="clearLogs" type="button">Borrar registros del diario</button></div></div></div><div class="notice danger"><strong>Seguridad:</strong> el tinnitus persistente de un solo oído y el dolor crónico merecen valoración profesional. Consulta antes de iniciar o cambiar sustancialmente la rutina, especialmente si empeoran. Detén el ejercicio y busca orientación ante pérdida repentina de audición, mareo importante, debilidad, adormecimiento o dolor agudo.</div>`;}
+      function allExercises(){return [...home,...mobility,...Object.values(gym).flatMap(s=>[...s.core,...s.lifts])];}
+      function persistRender(){save();renderAll();}
+      function updateProgress(){const exs=allExercises();const n=exs.filter(x=>(state.done[x.id]||0)>0).length;const percent=exs.length?Math.round(n/exs.length*100):0;document.querySelector('#progressFill').style.width=`${percent}%`;document.querySelector('#progressText').textContent=`${n} de ${exs.length} ejercicios completados hoy (${percent}%)`;document.querySelector('#modeLabel').textContent=`Modo activo: ${{standard:'Día estándar',recovery:'Recuperación suave',consolidation:'Consolidación'}[state.mode]}`;document.querySelector('#streak').textContent=`🔥 Racha: ${state.streak} días`;}
+      function renderAll(){renderHome();renderMobility();renderGym();renderBreaks();renderJournal();updateProgress();if(window.drawExerciseAnimations)window.drawExerciseAnimations();}
+      let globalSpeed=state.speed,animationsOn=state.animation;
+      function fmt(sec){return `${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;}
+      let timerInterval=null,timerRemaining=60,timerEnd=0;
+      function tickTimer(){timerRemaining=Math.max(0,Math.ceil((timerEnd-Date.now())/1000));document.querySelector('#timerDisplay').textContent=fmt(timerRemaining);if(timerRemaining<=0){clearInterval(timerInterval);timerInterval=null;document.querySelector('#timerStatus').textContent='Tiempo terminado. Continúa solo si te sientes lista.';}}
+      function openTimer(seconds,name){timerRemaining=Number(seconds)||60;document.querySelector('#timerName').textContent=name||'Descanso';document.querySelector('#timerDisplay').textContent=fmt(timerRemaining);document.querySelector('#timerStatus').textContent='Listo';document.querySelector('#timerDialog').showModal();clearInterval(timerInterval);timerInterval=null;}
+      function startTimer(){if(timerInterval)return;timerEnd=Date.now()+timerRemaining*1000;document.querySelector('#timerStatus').textContent='En marcha…';timerInterval=setInterval(tickTimer,200);tickTimer();}
+      function pauseTimer(){if(!timerInterval)return;timerRemaining=Math.max(0,Math.ceil((timerEnd-Date.now())/1000));clearInterval(timerInterval);timerInterval=null;document.querySelector('#timerStatus').textContent='Pausado';document.querySelector('#timerDisplay').textContent=fmt(timerRemaining);}
+      function resetTimer(){clearInterval(timerInterval);timerInterval=null;document.querySelector('#timerDisplay').textContent=fmt(timerRemaining);document.querySelector('#timerStatus').textContent='Listo';}
+      function speakHome(){if(!('speechSynthesis'in window)){alert('La guía por voz no está disponible en este navegador.');return;}if(speechSynthesis.speaking){speechSynthesis.cancel();document.querySelector('#voiceHome').textContent='🔊 Guía por voz: iniciar';return;}const utter=new SpeechSynthesisUtterance('Rutina breve en casa. Realiza únicamente movimientos cómodos. Cambia de postura o camina. Suelta los hombros con un rango pequeño. Prueba una rotación torácica pequeña si no aumenta síntomas. Puedes omitir cualquier movimiento. Detente si empeoran el dolor o el tinnitus, aparece mareo o entumecimiento.');utter.lang='es-ES';utter.onend=()=>{const b=document.querySelector('#voiceHome');if(b)b.textContent='🔊 Guía por voz: iniciar';};speechSynthesis.speak(utter);document.querySelector('#voiceHome').textContent='⏹ Detener guía';}
+      function switchTab(name){document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));document.querySelectorAll('.tab-content').forEach(s=>s.classList.toggle('active',s.id===name));if(window.drawExerciseAnimations)window.drawExerciseAnimations();}
+
+      document.addEventListener('click',e=>{
+       const tab=e.target.closest('[data-tab]');if(tab){switchTab(tab.dataset.tab);return;}
+       const session=e.target.closest('[data-session]');if(session){state.activeDay=session.dataset.session;save();renderGym();if(window.drawExerciseAnimations)window.drawExerciseAnimations();return;}
+       const length=e.target.closest('[data-length]');if(length){state.mobilityLength=length.dataset.length;save();renderMobility();if(window.drawExerciseAnimations)window.drawExerciseAnimations();return;}
+       const action=e.target.closest('[data-action]');if(action){const id=action.dataset.id;if(action.dataset.action==='timer'){openTimer(action.dataset.seconds,action.dataset.name);return;}if(action.dataset.action==='series'){state.done[id]=Number(action.dataset.value);save();renderAll();return;}if(action.dataset.action==='complete'){const ex=allExercises().find(x=>x.id===id);state.done[id]=(state.done[id]||0)>=ex.sets?0:ex.sets;save();renderAll();return;}if(action.dataset.action==='symptom'){state.symptoms[id]=action.dataset.value;save();renderAll();return;}if(action.dataset.action==='set-done'){const rec=getWeekRecord(id);const idx=Number(action.dataset.set);rec.sets[idx].done=!rec.sets[idx].done;state.done[id]=rec.sets.filter(s=>s.done).length;save();renderAll();return;}}
+       if(e.target.id==='voiceHome'){speakHome();return;}
+       if(e.target.id==='timerStart')startTimer();if(e.target.id==='timerPause')pauseTimer();if(e.target.id==='timerReset')resetTimer();
+       if(e.target.id==='resetDay'&&confirm('¿Reiniciar las marcas de ejercicios de hoy? Se conservarán las cargas semanales y notas.')){state.done={};state.symptoms={};state.date=todayISO();save();renderAll();}
+       if(e.target.id==='saveLog'){state.journal.push({date:document.querySelector('#logDate').value||todayISO(),energy:document.querySelector('#energy').value,trap:document.querySelector('#trap').value,tinnitus:document.querySelector('#tinnitus').value,note:document.querySelector('#note').value.trim()});state.streak+=1;save();renderJournal();}
+       if(e.target.id==='clearLogs'&&confirm('¿Borrar todos los registros del diario?')){state.journal=[];save();renderJournal();}
+       if(e.target.id==='exportData'){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='rutina-seguimiento-copia.json';a.click();URL.revokeObjectURL(a.href);}
+      });
+      document.addEventListener('input',e=>{const input=e.target.closest('[data-log]');if(!input)return;const rec=getWeekRecord(input.dataset.id),set=Number(input.dataset.set);rec.sets[set][input.dataset.log]=input.value;save();});
+      document.addEventListener('change',e=>{
+       if(e.target.id==='dayMode'){state.mode=e.target.value;save();updateProgress();}
+       if(e.target.id==='importFile'&&e.target.files[0]){const reader=new FileReader();reader.onload=()=>{try{Object.assign(state,JSON.parse(reader.result));save();renderAll();alert('Copia importada.');}catch{alert('No se pudo leer el archivo de copia.');}};reader.readAsText(e.target.files[0]);}
+      });
+      document.querySelectorAll('[data-speed]').forEach(button=>button.addEventListener('click',()=>{globalSpeed=Number(button.dataset.speed);state.speed=globalSpeed;save();document.querySelectorAll('[data-speed]').forEach(b=>b.classList.toggle('active',b===button));if(window.drawExerciseAnimations)window.drawExerciseAnimations();}));
+      document.querySelector('#animationToggle').addEventListener('click',e=>{animationsOn=!animationsOn;state.animation=animationsOn;e.currentTarget.classList.toggle('active',animationsOn);e.currentTarget.textContent=animationsOn?'▶ Animaciones':'⏸ Animaciones';save();if(window.drawExerciseAnimations)window.drawExerciseAnimations();});
+      document.querySelector('#wakeLock').addEventListener('click',async e=>{try{if(!('wakeLock'in navigator)){alert('Tu navegador no ofrece mantener la pantalla encendida.');return;}if(!window.screenLock){window.screenLock=await navigator.wakeLock.request('screen');e.currentTarget.textContent='📱 Pantalla: activa';window.screenLock.addEventListener('release',()=>{window.screenLock=null;e.currentTarget.textContent='📱 Pantalla: auto';});}else{await window.screenLock.release();window.screenLock=null;e.currentTarget.textContent='📱 Pantalla: auto';}}catch{alert('No se pudo activar la pantalla siempre encendida.');}});
+      document.querySelector('#streak').addEventListener('click',()=>alert('La racha es solo un contador informativo, no una meta ni medida de salud.'));
+      renderAll();
+      if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+    </script>
+  </body>
+</html>
