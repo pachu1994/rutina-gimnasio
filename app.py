@@ -8,8 +8,7 @@ from sqlalchemy import create_engine, text
 
 st.set_page_config(page_title="Rutina personal", page_icon="🏋️", layout="wide")
 
-# Configure APP_PASSWORD and (for shared cloud storage) DATABASE_URL in the environment
-# or Streamlit secrets. Never put credentials in this source file or commit them.
+# Configura APP_PASSWORD y DATABASE_URL en variables de entorno o en Streamlit secrets.
 def setting(name, default=None):
     try:
         value = st.secrets.get(name)
@@ -23,7 +22,7 @@ APP_PASSWORD = setting("APP_PASSWORD")
 DATABASE_URL = setting("DATABASE_URL", f"sqlite:///{Path(__file__).with_name('routine.db')}")
 
 if not APP_PASSWORD:
-    st.error("La aplicación está protegida. Configura APP_PASSWORD en las variables de entorno o en los secretos del servicio antes de usarla.")
+    st.error("La aplicación está protegida. Configura APP_PASSWORD en las variables de entorno o como secreto antes de usarla.")
     st.code('APP_PASSWORD = "elige-una-clave-segura"\nDATABASE_URL = "postgresql+psycopg://usuario:clave@servidor:5432/base"', language="toml")
     st.stop()
 
@@ -71,8 +70,16 @@ def save_state(state):
 
 
 def ex(id, title, category, dose, instructions, alternative, kind="general", reps=""):
-    return {"id": id, "title": title, "category": category, "dose": dose,
-            "instructions": instructions, "alternative": alternative, "kind": kind, "reps": reps}
+    return {
+        "id": id,
+        "title": title,
+        "category": category,
+        "dose": dose,
+        "instructions": instructions,
+        "alternative": alternative,
+        "kind": kind,
+        "reps": reps,
+    }
 
 HOME = [
     ex("home-walk", "Pausa activa: caminar o cambiar de postura", "Pausa", "1–2 min", "Levántate y camina un poco, o cambia de postura. No es necesario mantener una postura perfecta.", "Si no puedes caminar, ponte de pie y vuelve a sentarte despacio."),
@@ -166,8 +173,8 @@ st.progress(completed_count / len(ALL), text=f"{completed_count} de {len(ALL)} e
 
 
 def week_record(exercise_id):
-    key = date.today().isocalendar()
-    week = f"{key.year}-W{key.week:02d}"
+    iso = date.today().isocalendar()
+    week = f"{iso.year}-W{iso.week:02d}"
     state["weekly"].setdefault(week, {})
     record = state["weekly"][week].setdefault(exercise_id, {"sets": [{}, {}, {}]})
     while len(record["sets"]) < 3:
@@ -272,5 +279,5 @@ with tabs[5]:
         st.session_state.authenticated = False
         st.rerun()
 
-# Persist all exercise, settings, and journal changes on each app interaction.
 save_state(state)
+
